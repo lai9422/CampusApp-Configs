@@ -1,0 +1,293 @@
+{
+	"schoolId": "nkust.edu.tw",
+	"schoolName": "國立高雄科技大學",
+	"logoPath": "https://www.nkust.edu.tw/var/file/0/1000/img/513/182513897.png",
+	"calendar": {
+		"type": "pdf",
+		"url": "https://acad.nkust.edu.tw/var/file/4/1004/img/273/cal114-2.pdf"
+	},
+	"auth": {
+		"entryUrl": "https://stdsys.nkust.edu.tw/student/Course/StudentCourseQuery",
+		"successIndicators": [
+			{ "type": "exact", "value": "https://stdsys.nkust.edu.tw/student" },
+			{
+				"type": "exact",
+				"value": "https://stdsys.nkust.edu.tw/student/Course/StudentCourseQuery"
+			}
+		],
+		"loginIndicators": [{ "type": "contains", "value": "Account/Login" }],
+		"usernameSelector": "input[name=\"usernameOrEmailAddress\"]",
+		"passwordSelector": "input[name=\"Password\"]",
+		"submitSelector": "#LoginButton",
+		"autoFill": true,
+		"autoSubmit": false,
+		"verifyScript": "(function () {\n  var logoutBtn = document.querySelector('a[href=\"/student/Account/Logout\"]');\n  var pwdInput = document.querySelector('input[name=\"Password\"]');\n  if (logoutBtn && !pwdInput && window.mobileApp) {\n    window.mobileApp.postMessage({ detail: { type: 'AUTH_SUCCESS' }});\n  }\n})();"
+	},
+	"schedule": {
+		"syncMode": "auto",
+		"entryUrl": "https://stdsys.nkust.edu.tw/student/Course/StudentCourseQuery",
+		"targetUrlIndicators": [
+			{
+				"type": "exact",
+				"value": "https://stdsys.nkust.edu.tw/student/Course/StudentCourseQuery"
+			}
+		],
+		"sessionExpiredIndicators": [
+			{ "type": "contains", "value": "Account/Login" }
+		],
+		"timeSlots": [
+			{ "s": "M", "t": "07:10~08:00" },
+			{ "s": "1", "t": "08:10~09:00" },
+			{ "s": "2", "t": "09:10~10:00" },
+			{ "s": "3", "t": "10:10~11:00" },
+			{ "s": "4", "t": "11:10~12:00" },
+			{ "s": "A", "t": "12:10~13:00" },
+			{ "s": "5", "t": "13:30~14:20" },
+			{ "s": "6", "t": "14:30~15:20" },
+			{ "s": "7", "t": "15:30~16:20" },
+			{ "s": "8", "t": "16:30~17:20" },
+			{ "s": "9", "t": "17:30~18:20" },
+			{ "s": "10", "t": "18:30~19:20" },
+			{ "s": "11", "t": "19:25~20:15" },
+			{ "s": "12", "t": "20:20~21:10" },
+			{ "s": "13", "t": "21:15~22:05" }
+		],
+		"switchScript": "(function(){\n  if (typeof jQuery === 'undefined') return;\n  var targetVal = '{{TARGET_YEAR}}-{{TARGET_SEM}}';\n  \n  if (window.nkustQueryLock && (Date.now() - window.nkustQueryLock < 3000)) return;\n\n  try {\n    var $ddl = jQuery('#SchoolYearSms').data('kendoDropDownList');\n    if (!$ddl) return;\n\n    var currentVal = $ddl.value();\n    var table = document.querySelector('#detail-table');\n\n    if (currentVal !== targetVal || !table) {\n      window.nkustQueryLock = Date.now(); \n      \n      if (currentVal !== targetVal) {\n        $ddl.value(targetVal);\n        $ddl.trigger('change');\n      }\n      \n      setTimeout(function() {\n        if (typeof window.query === 'function') {\n          window.query();\n        } else {\n          var qBtn = document.querySelector('#query');\n          if (qBtn) qBtn.click();\n        }\n      }, 800);\n    }\n  } catch(e) {}\n})();",
+		"parseScript": "(function() {\n  if (window.isProcessing) return;\n  var table = document.querySelector('#detail-table');\n  if (!table) return;\n  var rows = table.querySelectorAll('tbody tr');\n  if (rows.length === 0) return;\n\n  var hasContent = Array.from(rows).some(function(r){ return r.innerText.trim().length > 10; });\n  if (!hasContent) return;\n\n  window.isProcessing = true;\n  var result = [];\n  \n  Array.from(rows).forEach(function(tr) {\n    var tds = tr.querySelectorAll('td');\n    if (tds.length < 8) return;\n    \n    var slot = tds[0].innerText.trim().split('\\n')[0].trim();\n    var days = [];\n    \n    for (var d = 1; d <= 7; d++) {\n      var cell = tds[d];\n      var a = cell.querySelector('a');\n      if (a) {\n        var courseName = a.innerText.trim();\n        var textNodes = Array.from(cell.childNodes).filter(function(n) {\n            return n.nodeType === 3 && n.textContent.trim().length > 0;\n        });\n        var teacher = textNodes.length > 0 ? textNodes[0].textContent.trim() : '';\n        var room = textNodes.length > 1 ? textNodes[1].textContent.trim() : '';\n        \n        days.push({\n          name: courseName,\n          teacher: teacher,\n          room: room\n        });\n      } else {\n        days.push({});\n      }\n    }\n    result.push({ slot: slot, days: days });\n  });\n\n  if (result.length > 0) {\n    if (window.mobileApp) window.mobileApp.postMessage({ detail: { type: 'DATA_SUCCESS', payload: result }});\n  } else {\n    window.isProcessing = false;\n  }\n})();",
+		"manualParseScript": ""
+	},
+	"news": {
+		"enabled": true,
+		"mode": "webview",
+		"apiUrl": "",
+		"apiMethod": "GET",
+		"apiHeaders": "{}",
+		"apiBody": "",
+		"apiRequestScript": "",
+		"parseScript": "return [];",
+		"webviewUrl": "https://www.nkust.edu.tw/p/422-1000-1001-1.php?Lang=zh-tw",
+		"targetUrlIndicators": [],
+		"webviewScript": "(function() {\n  if (window._hasParsedNews) return;\n  \n  var items = document.querySelectorAll('#pageptlist .d-item');\n  if (items.length === 0) return;\n\n  window._hasParsedNews = true;\n  var result = [];\n\n  for (var i = 0; i < items.length; i++) {\n    var a = items[i].querySelector('.mtitle a');\n    var dateEl = items[i].querySelector('.mdate');\n    if (a) {\n      result.push({\n        title: a.textContent.trim(),\n        date: dateEl ? dateEl.textContent.trim() : '',\n        link: a.href,\n        department: '校園公告'\n      });\n    }\n  }\n\n  if (window.mobileApp) {\n    window.mobileApp.postMessage({\n      detail: {\n        type: 'NEWS_SUCCESS',\n        payload: result\n      }\n    });\n  }\n})();"
+	},
+	"mail": {
+		"enabled": true,
+		"mode": "webview",
+		"apiUrl": "",
+		"apiMethod": "GET",
+		"apiHeaders": "{}",
+		"apiBody": "",
+		"apiRequestScript": "",
+		"parseScript": "return [];",
+		"webviewUrl": "https://post.nkust.edu.tw/post_main.aspx?act=QryView",
+		"targetUrlIndicators": [],
+		"webviewScript": "(function() {\n  // 防連點鎖：確保 500ms 內只執行一次\n  if (window._isHandlingMail) return;\n  window._isHandlingMail = true;\n\n  var grid = document.getElementById('ctl00_ContentPlaceHolder1_GridView3');\n  var btn = document.getElementById('ctl00_ContentPlaceHolder1_qry_btn1');\n\n  // 1. 若畫面上沒有表格，代表是剛進入，觸發查詢\n  if (!grid) {\n    if (!sessionStorage.getItem('mail_init_query')) {\n      sessionStorage.setItem('mail_init_query', 'true');\n      sessionStorage.removeItem('mail_all_data');\n      sessionStorage.removeItem('mail_parsed_page');\n      sessionStorage.removeItem('mail_done');\n      if (btn) btn.click();\n    }\n    window._isHandlingMail = false;\n    return;\n  }\n\n  // 2. 若已標記完成，結束執行\n  if (sessionStorage.getItem('mail_done') === 'true') {\n    window._isHandlingMail = false;\n    return;\n  }\n\n  // 3. 取得當前頁碼，避免重複抓取相同頁面\n  var curPageStr = document.getElementById('ctl00_ContentPlaceHolder1_GridView3_ctl01_lblCurrentPage');\n  var curPage = curPageStr ? parseInt(curPageStr.textContent.trim()) : 1;\n\n  var parsedPage = sessionStorage.getItem('mail_parsed_page');\n  if (parsedPage && parseInt(parsedPage) === curPage) {\n    window._isHandlingMail = false;\n    return;\n  }\n\n  // 4. 解析當前頁面的資料\n  var rows = document.querySelectorAll('.gv-row');\n  var pageData = [];\n  for (var i = 0; i < rows.length; i++) {\n    var tds = rows[i].querySelectorAll('td');\n    if (tds.length >= 7) {\n      var dateRaw = tds[0].textContent.trim();\n      var cls = tds[1].textContent.trim();\n      var name = tds[2].textContent.trim();\n      var type = tds[5].textContent.trim();\n      var location = tds[6].textContent.trim().replace(/\\s+/g, ' ');\n\n      // 將西元年轉換為民國年格式 (2026-03-24 -> 1150324)\n      var formattedDate = dateRaw;\n      var dateParts = dateRaw.split('-');\n      if (dateParts.length === 3) {\n        var rocYear = parseInt(dateParts[0]) - 1911;\n        formattedDate = rocYear.toString() + dateParts[1] + dateParts[2];\n      }\n\n      pageData.push({\n        name: name,\n        department: cls + (type ? ' (' + type + ')' : ''),\n        date: formattedDate,\n        campus: location\n      });\n    }\n  }\n\n  // 5. 將結果合併至 sessionStorage 總資料陣列\n  var allData = JSON.parse(sessionStorage.getItem('mail_all_data') || '[]');\n  allData = allData.concat(pageData);\n  sessionStorage.setItem('mail_all_data', JSON.stringify(allData));\n  sessionStorage.setItem('mail_parsed_page', curPage.toString());\n\n  // 6. 判斷翻頁邏輯 (最多抓 5 頁)\n  var nextBtn = document.getElementById('ctl00_ContentPlaceHolder1_GridView3_ctl01_lnkBtnNext');\n  var hasNext = nextBtn && !nextBtn.getAttribute('disabled');\n\n  if (curPage < 6 && hasNext) {\n     nextBtn.click(); // 觸發 ASP.NET postback 進入下一頁\n  } else {\n    // 已無下一頁或滿 5 頁，統一發送結果並結束\n    sessionStorage.setItem('mail_done', 'true');\n    if (window.mobileApp) {\n      window.mobileApp.postMessage({ detail: { type: 'MAIL_SUCCESS', payload: allData } });\n    }\n  }\n\n  window._isHandlingMail = false;\n})();"
+	},
+	"links": [
+		{
+			"title": "個人資訊",
+			"style": "pill",
+			"items": [
+				{
+					"title": "學務資訊系統",
+					"url": "https://oosaf.nkust.edu.tw/",
+					"icon": "user"
+				},
+				{
+					"title": "線上請假",
+					"url": "https://oosaf.nkust.edu.tw/Student/Leave/Create",
+					"icon": "calendar"
+				},
+				{
+					"title": "學雜費專區",
+					"url": "https://ofa.nkust.edu.tw/p/412-1001-5031.php?Lang=zh-tw",
+					"icon": "credit-card"
+				},
+				{
+					"title": "諮商預約",
+					"url": "http://care.nkust.edu.tw/",
+					"icon": "chat"
+				},
+				{
+					"title": "助理簽到",
+					"url": "https://ntapp.nkust.edu.tw/ptSign/",
+					"icon": "check"
+				}
+			]
+		},
+		{
+			"title": "學習資源",
+			"style": "pill",
+			"items": [
+				{
+					"title": "選課系統",
+					"url": "https://stdsel.nkust.edu.tw/dispatch",
+					"icon": "book"
+				},
+				{
+					"title": "教學平台",
+					"url": "https://elearning.nkust.edu.tw/",
+					"icon": "monitor"
+				},
+				{
+					"title": "舊教學平台",
+					"url": "https://oldelearning.nkust.edu.tw/",
+					"icon": "clock"
+				},
+				{
+					"title": "Zuvio",
+					"url": "https://www.nkust.edu.tw/p/404-1000-5351.php",
+					"icon": "message"
+				},
+				{
+					"title": "泛閱讀",
+					"url": "https://ws1.nkust.edu.tw/IRead",
+					"icon": "book-open"
+				},
+				{
+					"title": "圖書查詢",
+					"url": "https://nkust.primo.exlibrisgroup.com/discovery/search?vid=886NKUST_INST:86NKUST&lang=zh-tw",
+					"icon": "search"
+				},
+				{
+					"title": "課業輔導",
+					"url": "https://ws2.nkust.edu.tw/coursecounsellor/",
+					"icon": "help"
+				},
+				{
+					"title": "授權軟體",
+					"url": "https://cc.nkust.edu.tw/p/412-1025-3915.php",
+					"icon": "download"
+				}
+			]
+		},
+		{
+			"title": "學籍與申請",
+			"style": "pill",
+			"items": [
+				{
+					"title": "成績證明",
+					"url": "https://centapp.nkust.edu.tw/Home",
+					"icon": "file"
+				},
+				{
+					"title": "活動平台",
+					"url": "https://ws1.nkust.edu.tw/Activity/",
+					"icon": "bell"
+				},
+				{
+					"title": "預警系統",
+					"url": "https://webap.nkust.edu.tw/nkust/",
+					"icon": "alert"
+				},
+				{
+					"title": "學習歷程",
+					"url": "https://eportfolio.nkust.edu.tw",
+					"icon": "folder"
+				},
+				{
+					"title": "文件申請",
+					"url": "https://ws1.nkust.edu.tw/iData/Pos/",
+					"icon": "file-text"
+				}
+			]
+		},
+		{
+			"title": "課程申請",
+			"style": "pill",
+			"items": [
+				{
+					"title": "選課申請",
+					"url": "https://apply2.nkust.edu.tw/AddCrsApply",
+					"icon": "edit"
+				},
+				{
+					"title": "學分抵免",
+					"url": "https://ws3.nkust.edu.tw/Waiver",
+					"icon": "repeat"
+				},
+				{
+					"title": "學位考試",
+					"url": "https://apply.nkust.edu.tw/Master",
+					"icon": "award"
+				},
+				{
+					"title": "轉系",
+					"url": "https://apply2.nkust.edu.tw/TransferUnit",
+					"icon": "shuffle"
+				},
+				{
+					"title": "休復退",
+					"url": "https://apply2.nkust.edu.tw/srw",
+					"icon": "log-out"
+				}
+			]
+		},
+		{
+			"title": "生活服務",
+			"style": "pill",
+			"items": [
+				{
+					"title": "校車預約",
+					"url": "https://vms.nkust.edu.tw/",
+					"icon": "truck"
+				},
+				{
+					"title": "場地租借",
+					"url": "http://newvenue.nkust.edu.tw/rental-system/#/login",
+					"icon": "home"
+				},
+				{
+					"title": "宿舍申請",
+					"url": "https://ws1.nkust.edu.tw/Dorm/Account/Login",
+					"icon": "bed"
+				},
+				{
+					"title": "租屋平台",
+					"url": "https://ws1.nkust.edu.tw/tutor/Account/RentLogin",
+					"icon": "map"
+				},
+				{
+					"title": "郵件查詢",
+					"url": "https://post.nkust.edu.tw/",
+					"icon": "mail"
+				},
+				{
+					"title": "付款查詢",
+					"url": "https://ofa.nkust.edu.tw/p/412-1001-5030.php?Lang=zh-tw",
+					"icon": "dollar"
+				}
+			]
+		},
+		{
+			"title": "其他",
+			"style": "list",
+			"items": [
+				{
+					"title": "實習就業",
+					"url": "https://goodjob.nkust.edu.tw/",
+					"icon": "briefcase"
+				},
+				{
+					"title": "教學意見",
+					"url": "https://ceq.nkust.edu.tw/Home/StdIndex",
+					"icon": "edit-3"
+				},
+				{
+					"title": "校務建言",
+					"url": "https://suggest.nkust.edu.tw/",
+					"icon": "message-circle"
+				},
+				{
+					"title": "維修申請",
+					"url": "https://ws2.nkust.edu.tw/fixall",
+					"icon": "tool"
+				},
+				{
+					"title": "畢業離校",
+					"url": "https://stdsys.nkust.edu.tw/Student/Account/Login",
+					"icon": "log-out"
+				}
+			]
+		}
+	]
+}

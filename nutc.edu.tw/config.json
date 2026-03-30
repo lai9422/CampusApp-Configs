@@ -1,0 +1,134 @@
+{
+	"schoolId": "nutc.edu.tw",
+	"schoolName": "國立臺中科技大學",
+	"logoPath": "https://www.nutc.edu.tw/var/file/0/1000/msys_1000_7982359_54786.png",
+	"calendar": {
+		"type": "pdf",
+		"url": "https://aca.nutc.edu.tw/var/file/15/1015/img/295676649.pdf"
+	},
+	"auth": {
+		"entryUrl": "https://sso.nutc.edu.tw/eportal/",
+		"successIndicators": [
+			{ "type": "contains", "value": "ais.nutc.edu.tw/student/home.aspx" }
+		],
+		"loginIndicators": [
+			{ "type": "contains", "value": "sso.nutc.edu.tw/eportal" },
+			{ "type": "contains", "value": "Login" }
+		],
+		"usernameSelector": "#ContentPlaceHolder1_Account",
+		"passwordSelector": "#ContentPlaceHolder1_Password",
+		"submitSelector": "#ContentPlaceHolder1_Login",
+		"autoFill": true,
+		"autoSubmit": false,
+		"verifyScript": "(function () {\n  try {\n    if (location.href.indexOf('MyArea.aspx') !== -1) {\n      if (window._nutcRedirecting) return;\n      var links = document.querySelectorAll('a');\n      for (var i = 0; i < links.length; i++) {\n        if (links[i].textContent.trim() === '學生管理系統' && links[i].href.indexOf('Ticket=') !== -1) {\n          window._nutcRedirecting = true;\n          location.href = links[i].href;\n          return;\n        }\n      }\n    }\n    if (location.href.indexOf('ais.nutc.edu.tw/student/home.aspx') !== -1) {\n      if(window.mobileApp) window.mobileApp.postMessage({ detail: { type: 'AUTH_SUCCESS' }});\n    }\n  } catch (e) {}\n})();"
+	},
+	"schedule": {
+		"syncMode": "auto",
+		"entryUrl": "https://ais.nutc.edu.tw/student/courses/my_week_time.aspx",
+		"targetUrlIndicators": [
+			{ "type": "contains", "value": "my_week_time.aspx" }
+		],
+		"sessionExpiredIndicators": [{ "type": "contains", "value": "Login.aspx" }],
+		"timeSlots": [
+			{ "s": "1", "t": "08:20~09:10" },
+			{ "s": "2", "t": "09:20~10:10" },
+			{ "s": "3", "t": "10:20~11:10" },
+			{ "s": "4", "t": "11:20~12:10" },
+			{ "s": "5", "t": "13:10~14:00" },
+			{ "s": "6", "t": "14:10~15:00" },
+			{ "s": "7", "t": "15:10~16:00" },
+			{ "s": "8", "t": "16:10~17:00" },
+			{ "s": "9", "t": "17:10~18:00" },
+			{ "s": "10", "t": "18:20~19:10" },
+			{ "s": "11", "t": "19:15~20:05" },
+			{ "s": "12", "t": "20:10~21:00" },
+			{ "s": "13", "t": "21:05~21:55" },
+			{ "s": "14", "t": "22:00~22:50" }
+		],
+		"switchScript": "(function(){\n  // 無需學期切換\n})();",
+		"parseScript": "(function() {\n  try {\n    if (window._hasSentData) return;\n    if (typeof g_ClsTime === 'undefined') return;\n\n    var result = [];\n    var slotMap = ['1','2','3','4','5','6','7','8','9','10','11','12','13','14'];\n    for(var k=0; k<slotMap.length; k++) {\n      result.push({ slot: slotMap[k], days: [{},{},{},{},{},{},{}] });\n    }\n\n    var hasData = false;\n    for (var key in g_ClsTime) {\n      var kParts = key.split('-');\n      var dayIdx = parseInt(kParts[0]) - 1;\n      var pIdx = parseInt(kParts[1]) - 1;\n      if(dayIdx >= 0 && dayIdx < 7 && pIdx >= 0 && pIdx < slotMap.length) {\n        var cData = g_ClsTime[key].split('\\t');\n        var cName = cData[1] ? cData[1].replace(/<[^>]+>/g, '').trim() : '';\n        result[pIdx].days[dayIdx] = {\n          name: cName,\n          teacher: cData[2] ? cData[2].trim() : '',\n          room: cData[3] ? cData[3].trim() : ''\n        };\n        hasData = true;\n      }\n    }\n    \n    if (hasData) {\n      window._hasSentData = true;\n      if(window.mobileApp) {\n        window.mobileApp.postMessage({ detail: { type: 'DATA_SUCCESS', payload: result }});\n      }\n    }\n  } catch(e) {}\n})();",
+		"manualParseScript": "(function() {\n  try {\n    if (typeof g_ClsTime === 'undefined') {\n        if(window.mobileApp) window.mobileApp.postMessage({ detail: { type: 'ERROR', message: '找不到課表變數資料，請確認網頁是否載入完成。' }});\n        return;\n    }\n\n    var result = [];\n    var slotMap = ['1','2','3','4','5','6','7','8','9','10','11','12','13','14'];\n    for(var k=0; k<slotMap.length; k++) {\n      result.push({ slot: slotMap[k], days: [{},{},{},{},{},{},{}] });\n    }\n\n    var hasData = false;\n    for (var key in g_ClsTime) {\n      var kParts = key.split('-');\n      var dayIdx = parseInt(kParts[0]) - 1;\n      var pIdx = parseInt(kParts[1]) - 1;\n      if(dayIdx >= 0 && dayIdx < 7 && pIdx >= 0 && pIdx < slotMap.length) {\n        var cData = g_ClsTime[key].split('\\t');\n        var cName = cData[1] ? cData[1].replace(/<[^>]+>/g, '').trim() : '';\n        result[pIdx].days[dayIdx] = {\n          name: cName,\n          teacher: cData[2] ? cData[2].trim() : '',\n          room: cData[3] ? cData[3].trim() : ''\n        };\n        hasData = true;\n      }\n    }\n    \n    if (hasData) {\n      if(window.mobileApp) window.mobileApp.postMessage({ detail: { type: 'DATA_SUCCESS', payload: result }});\n    } else {\n      if(window.mobileApp) window.mobileApp.postMessage({ detail: { type: 'ERROR', message: '解析成功，但課表無資料。' }});\n    }\n  } catch(e) {\n     if(window.mobileApp) window.mobileApp.postMessage({ detail: { type: 'ERROR', message: e.toString() }});\n  }\n})();"
+	},
+	"news": {
+		"enabled": true,
+		"mode": "webview",
+		"apiUrl": "",
+		"apiMethod": "GET",
+		"apiHeaders": "{}",
+		"apiBody": "",
+		"apiRequestScript": "",
+		"parseScript": "return [];",
+		"webviewUrl": "https://www.nutc.edu.tw/p/911-1000.php?Lang=zh-tw",
+		"targetUrlIndicators": [],
+		"webviewScript": "(function () {\n  // 全域鎖：防止重複執行回傳\n  if (window._hasParsedNews) return;\n\n  var rows = document.querySelectorAll('.listTB tbody tr');\n  if (rows.length === 0) return; // 等待表格載入完成\n\n  window._hasParsedNews = true;\n  var result = [];\n\n  for (var i = 0; i < rows.length; i++) {\n    var tr = rows[i];\n    var titleA = tr.querySelector('td[data-th=\"標題\"] a');\n    var dateTd = tr.querySelector('td[data-th=\"日期\"]');\n    var deptTd = tr.querySelector('td[data-th=\"發佈單位\"]');\n\n    if (titleA) {\n      var cleanDate = dateTd ? dateTd.textContent.replace(/[\\s\\[\\]]/g, '') : '';\n\n      result.push({\n        title: titleA.textContent.trim(),\n        date: cleanDate,\n        link: titleA.href,\n        department: deptTd ? deptTd.textContent.trim() : '校方公告'\n      });\n    }\n  }\n\n  if (window.mobileApp) {\n    window.mobileApp.postMessage({\n      detail: {\n        type: 'NEWS_SUCCESS',\n        payload: result\n      }\n    });\n  }\n})();"
+	},
+	"mail": {
+		"enabled": false,
+		"mode": "webview",
+		"apiUrl": "",
+		"apiMethod": "GET",
+		"apiHeaders": "{}",
+		"apiBody": "",
+		"apiRequestScript": "",
+		"parseScript": "return [];",
+		"webviewUrl": "https://aps.ncue.edu.tw/letter/letter.php",
+		"targetUrlIndicators": [{ "type": "contains", "value": "letter.php" }],
+		"webviewScript": ""
+	},
+	"links": [
+		{
+			"title": "入學資訊",
+			"style": "pill",
+			"items": [
+				{
+					"title": "招生資訊",
+					"url": "https://rpage.nutc.edu.tw/p/412-1000-159.php"
+				},
+				{
+					"title": "各系所課程標準",
+					"url": "https://aisap.nutc.edu.tw/public/day/std_dep_course.aspx"
+				},
+				{
+					"title": "新生專區",
+					"url": "https://aca.nutc.edu.tw/p/412-1015-12271.php"
+				},
+				{
+					"title": "日間部課程資訊",
+					"url": "https://aisap.nutc.edu.tw/public/day/course_list.aspx"
+				},
+				{
+					"title": "進修部課程資訊",
+					"url": "https://aisap.nutc.edu.tw/public/nig/course_list.aspx"
+				}
+			]
+		},
+		{
+			"title": "學生服務",
+			"style": "pill",
+			"items": [
+				{
+					"title": "畢業專區",
+					"url": "https://aca.nutc.edu.tw/p/412-1015-12361.php"
+				},
+				{ "title": "雲端租屋生活網", "url": "https://house.nfu.edu.tw/NTCUST" },
+				{
+					"title": "獎助生及兼任助理專區",
+					"url": "https://student.nutc.edu.tw/p/412-1020-9660.php"
+				},
+				{
+					"title": "就學貸款",
+					"url": "https://student.nutc.edu.tw/p/404-1020-555.php?Lang=zh-tw"
+				},
+				{
+					"title": "校外獎助學金",
+					"url": "https://student.nutc.edu.tw/p/404-1020-49382.php?Lang=zh-tw"
+				}
+			]
+		},
+		{
+			"title": "就業服務",
+			"style": "list",
+			"items": [{ "title": "青年發展署", "url": "https://www.yda.gov.tw/" }]
+		}
+	]
+}
