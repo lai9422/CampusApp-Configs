@@ -1,0 +1,129 @@
+{
+  "schoolId": "aeust.edu.tw",
+  "schoolName": "亞東科技大學",
+  "logoPath": "https://upload.wikimedia.org/wikipedia/zh/5/5e/Asia_Eastern_University_of_Science_and_Technology_.png",
+  "calendar": {
+    "type": "pdf",
+    "url": "https://acea.aeust.edu.tw/var/file/53/1053/img/980/312330891.pdf"
+  },
+  "auth": {
+    "entryUrl": "https://portal.aeust.edu.tw/",
+    "successIndicators": [
+      {
+        "type": "contains",
+        "value": "sid=StdProfile"
+      },
+      {
+        "type": "contains",
+        "value": "pname="
+      }
+    ],
+    "loginIndicators": [
+      {
+        "type": "contains",
+        "value": "LoginAccount"
+      }
+    ],
+    "usernameSelector": "#LoginAccount",
+    "passwordSelector": "#LoginPassword",
+    "submitSelector": ".top_bar_btn_left",
+    "autoFill": true,
+    "autoSubmit": true,
+    "verifyScript": "(function () { var logoutBtn = document.querySelector('a[href*=\"logout\"], a[href*=\"Logout\"], a[href*=\"mode=LogOut\"]'); var pwdInput = document.querySelector('#LoginPassword'); if (logoutBtn && !pwdInput && window.mobileApp) { window.mobileApp.postMessage({ detail: { type: 'AUTH_SUCCESS' }}); } })();"
+  },
+  "schedule": {
+    "syncMode": "auto",
+    "entryUrl": "https://portal.aeust.edu.tw/?sid=StdProfile&mode=StdCosTable&pname=LearningFile_Std",
+    "targetUrlIndicators": [
+      {
+        "type": "contains",
+        "value": "mode=StdCosTable"
+      }
+    ],
+    "sessionExpiredIndicators": [
+      {
+        "type": "contains",
+        "value": "LoginAccount"
+      }
+    ],
+    "timeSlots": [
+      { "s": "1", "t": "08:10~09:00" },
+      { "s": "2", "t": "09:10~10:00" },
+      { "s": "3", "t": "10:10~11:00" },
+      { "s": "4", "t": "11:10~12:00" },
+      { "s": "16", "t": "12:10~13:00" },
+      { "s": "5", "t": "13:10~14:00" },
+      { "s": "6", "t": "14:10~15:00" },
+      { "s": "7", "t": "15:10~16:00" },
+      { "s": "8", "t": "16:10~17:00" },
+      { "s": "9", "t": "17:00~17:50" },
+      { "s": "10", "t": "18:00~18:20" },
+      { "s": "11", "t": "18:30~19:15" },
+      { "s": "12", "t": "19:15~20:00" },
+      { "s": "13", "t": "20:10~20:55" },
+      { "s": "14", "t": "20:55~21:40" },
+      { "s": "15", "t": "21:40~22:25" }
+    ],
+    "switchScript": "(function(){ if (typeof jQuery === 'undefined') return; var targetVal = '{{TARGET_YEAR}}-{{TARGET_SEM}}'; if (window.aeustQueryLock && (Date.now() - window.aeustQueryLock < 3000)) return; try { var selectEl = document.querySelector('select[name=\"semester\"], select#sms'); if (!selectEl) return; var currentVal = selectEl.value; if (currentVal !== targetVal) { window.aeustQueryLock = Date.now(); selectEl.value = targetVal; selectEl.dispatchEvent(new Event('change')); setTimeout(function() { var qBtn = document.querySelector('button.query-btn, #btnQuery, input[type=\"submit\"]'); if (qBtn) qBtn.click(); }, 800); } } catch(e) {} })();",
+    "parseScript": "(function() { if (window._hasSentData) return; var container = document.querySelector('.StdCosTable_T_Box'); if (!container) return; var divs = Array.from(container.children).filter(function(d) { return d.id && (d.id.indexOf('CELL_') === 0 || d.id.indexOf('COSTIME_') === 0); }); if (divs.length === 0) return; window._hasSentData = true; var result = []; var srcMap = [2, 3, 4, 5, 6, 7, 1]; for (var i = 0; i < divs.length; i += 8) { var chunk = divs.slice(i, i + 8); if (chunk.length < 8) break; var slotText = chunk[0].innerText.trim(); var slotMatch = slotText.match(/第(\\d+)節/); var slot = slotMatch ? slotMatch[1] : slotText.split('\\n')[0].trim(); var days = []; for (var j = 0; j < 7; j++) { var cell = chunk[srcMap[j]]; var text = cell.innerText.trim(); if (cell.id.indexOf('COSTIME_') === 0 && text.length > 0) { var parts = text.split('\\n'); days.push({ name: parts[0] ? parts[0].trim() : text, teacher: parts[1] ? parts[1].trim() : '', room: parts[2] ? parts[2].trim() : '' }); } else { days.push({}); } } result.push({ slot: slot, days: days }); } if (result.length > 0) { if (window.mobileApp) window.mobileApp.postMessage({ detail: { type: 'DATA_SUCCESS', payload: result }}); } else { window._hasSentData = false; } })();",
+    "manualParseScript": ""
+  },
+  "score": {
+    "enabled": true,
+    "mode": "webview",
+    "fetchMode": "all",
+    "entryUrl": "https://portal.aeust.edu.tw/?sid=PrtHistory&mode=SmtrCourseScoreHistory&pname=LearningFile_Std",
+    "targetUrlIndicators": [
+      {
+        "type": "contains",
+        "value": "mode=SmtrCourseScoreHistory"
+      }
+    ],
+    "switchScript": "",
+    "parseScript": "(function() { if (window._hasParsedScore) return; var table = document.querySelector('.ScoreHistory_Table'); if (!table) return; var rows = table.querySelectorAll('tbody tr'); if (rows.length < 2) return; var results = []; for (var i = 1; i < rows.length; i++) { var tds = rows[i].querySelectorAll('td'); if (tds.length >= 9) { var termRaw = tds[0].innerText.trim(); if (!termRaw || termRaw.length < 3) continue; var year = termRaw.substring(0, termRaw.length - 1); var sem = termRaw.substring(termRaw.length - 1); var termFormatted = year + '-' + sem; var scoreStr = tds[8].innerText.trim(); var isPass = false; var status = \"不及格\"; var scoreNum = parseInt(scoreStr, 10); if (!isNaN(scoreNum) && scoreNum >= 60) { isPass = true; status = \"及格\"; } else if (scoreStr === '通過' || scoreStr === '抵免' || scoreStr.indexOf('格') !== -1) { isPass = true; status = \"及格\"; } else if (scoreStr === '--' || scoreStr === '') { status = \"未出\"; isPass = false; } results.push({ term: termFormatted, subject: tds[5].innerText.trim(), score: scoreStr, credit: tds[6].innerText.trim(), type: tds[1].innerText.trim(), className: \"\", isPass: isPass, status: status }); } } if (results.length > 0 && window.mobileApp) { window._hasParsedScore = true; window.mobileApp.postMessage({ detail: { type: 'DATA_SUCCESS', payload: results } }); } })();"
+  },
+  "news": {
+    "enabled": false,
+    "mode": "webview",
+    "apiUrl": "",
+    "apiMethod": "GET",
+    "apiHeaders": "{}",
+    "apiBody": "",
+    "apiRequestScript": "",
+    "parseScript": "return [];",
+    "webviewUrl": "",
+    "targetUrlIndicators": [],
+    "webviewScript": ""
+  },
+  "mail": {
+    "enabled": false,
+    "mode": "webview",
+    "apiUrl": "",
+    "apiMethod": "GET",
+    "apiHeaders": "{}",
+    "apiBody": "",
+    "apiRequestScript": "",
+    "parseScript": "return [];",
+    "webviewUrl": "",
+    "targetUrlIndicators": [],
+    "webviewScript": ""
+  },
+  "links": [
+    {
+      "title": "校園服務",
+      "style": "pill",
+      "items": [
+        {
+          "title": "亞東入口網",
+          "url": "https://portal.aeust.edu.tw/",
+          "icon": "home"
+        },
+        {
+          "title": "學生信箱",
+          "url": "https://portal.aeust.edu.tw/?sid=Transport&mode=WebMail&pname=BaseService",
+          "icon": "mail"
+        }
+      ]
+    }
+  ]
+}
